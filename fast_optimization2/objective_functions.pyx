@@ -2,7 +2,7 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-from metrics import backtot, opt
+from fast_optimization2.metrics import backtot, opt
 
 def multi_obj_func2(metrics):
     """

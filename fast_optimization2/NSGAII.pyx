@@ -3,7 +3,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 from IHSetYates09 import model_simulation
-from objectives_functions import obj_func
+from fast_optimization2.objective_functions import obj_func
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
