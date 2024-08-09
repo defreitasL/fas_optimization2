@@ -207,7 +207,7 @@ cpdef tuple select_niched_population(np.ndarray[double, ndim=2] population, np.n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=2] Obs, int num_generations, int population_size, double cross_prob, double mutation_rate, double regeneration_rate, list index_metrics, np.ndarray[double, ndim=2] E, double dt, np.ndarray[int, ndim=1] idx_obs, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
+cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generations, int population_size, double cross_prob, double mutation_rate, double regeneration_rate, list index_metrics, np.ndarray[double, ndim=1] E, double dt, np.ndarray[int, ndim=1] idx_obs, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
     """
     NSGA-II algorithm with additional parameters
     """
