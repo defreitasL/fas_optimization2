@@ -272,16 +272,12 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
             simulation = model_simulation(E, dt, Obs[0], idx_obs, offspring[i])
             new_objectives[i] = obj_func(Obs, simulation, index_metrics)
 
-        print("Check 9")
         population = offspring
         objectives = new_objectives
 
-        print("Check 10")
         if generation % 100 == 0:
             print(f"Generation {generation} of {num_generations} completed")
         
-        print("Check 11")
-
     return population, objectives
 
 
