@@ -64,9 +64,14 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
     cdef double next_value, prev_value, norm
     cdef int m, i
 
+    print("Check crowding, num_individuals:", num_individuals)
+    print("Check crowding, num_objectives:", num_objectives)
+
     for m in range(num_objectives):
+        print("Check crowding 1")
         sorted_indices = np.argsort(objectives[front, m]).astype(np.int32)
         distance[sorted_indices[0]] = distance[sorted_indices[-1]] = np.inf
+        print("Check crowding 2")
 
         for i in range(1, num_individuals - 1):
             next_value = objectives[front[sorted_indices[i + 1]], m]
@@ -74,7 +79,8 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
             norm = objectives[front[sorted_indices[-1]], m] - objectives[front[sorted_indices[0]], m]
             if norm != 0:
                 distance[sorted_indices[i]] += (next_value - prev_value) / norm
-
+        print("Check crowding 3")
+    print("Check crowding 4")
     return distance
 
 @cython.boundscheck(False)
