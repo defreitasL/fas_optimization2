@@ -209,6 +209,20 @@ cpdef tuple select_niched_population(np.ndarray[double, ndim=2] population, np.n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cpdef tuple initialize_population(int population_size, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
+    """
+    Initialize population within the given bounds
+    """
+    cdef np.ndarray[double, ndim=2] population = np.zeros((population_size, len(lower_bounds)))
+    cdef int i
+
+    for i in range(len(lower_bounds)):
+        population[:, i] = np.random.uniform(lower_bounds[i], upper_bounds[i], population_size)
+
+    return population, lower_bounds, upper_bounds
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generations, int population_size, double cross_prob, double mutation_rate, double regeneration_rate, list index_metrics, np.ndarray[double, ndim=1] E, double dt, np.ndarray[int, ndim=1] idx_obs, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
     """
     NSGA-II algorithm with additional parameters
@@ -219,7 +233,7 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
     cdef np.ndarray[double, ndim=1] crowding_distances
 
     # Chame a função para inicializar a população e obtenha os limites inferiores e superiores
-    population = initialize_population(population_size, lower_bounds, upper_bounds)
+    population, lower_bounds, upper_bounds = initialize_population(population_size, lower_bounds, upper_bounds)
     npar = population.shape[1]
     objectives = np.empty((population_size, 3))
 
@@ -251,7 +265,7 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
         offspring = crossover(mating_pool, npar, cross_prob, lower_bounds, upper_bounds)
         offspring = polynomial_mutation(offspring, mutation_rate, npar, lower_bounds, upper_bounds)
 
-        new_individuals = initialize_population(num_to_regenerate, lower_bounds, upper_bounds)
+        new_individuals, lower_bounds, upper_bounds = initialize_population(num_to_regenerate, lower_bounds, upper_bounds)
         offspring = np.vstack((offspring, new_individuals))
         new_objectives = np.empty_like(objectives)
         for i in range(population_size):
@@ -263,23 +277,11 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
         objectives = new_objectives
 
         print("Check 10")
-        if generation % 10 == 0:
+        if generation % 100 == 0:
             print(f"Generation {generation} of {num_generations} completed")
         
         print("Check 11")
 
     return population, objectives
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cpdef tuple initialize_population(int population_size, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
-    """
-    Initialize population within the given bounds
-    """
-    cdef np.ndarray[double, ndim=2] population = np.zeros((population_size, len(lower_bounds)))
-    cdef int i
 
-    for i in range(len(lower_bounds)):
-        population[:, i] = np.random.uniform(lower_bounds[i], upper_bounds[i], population_size)
-
-    return population
