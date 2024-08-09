@@ -13,14 +13,14 @@ from libc.time cimport time
 @cython.wraparound(False)
 @cython.cdivision(True)
 cpdef tuple fast_non_dominated_sort(np.ndarray[double, ndim=2] objectives):
-    cdef int population_size = objectives.shape[0]
-    cdef int p, q, i, j, k, next_front_size
-    cdef int[:] domination_count = np.zeros(population_size, dtype=np.int32)
-    cdef int[:] current_counts = np.zeros(population_size, dtype=np.int32)
-    cdef int[:] ranks = np.zeros(population_size, dtype=np.int32)
-    cdef int[:] front_sizes = np.zeros(population_size, dtype=np.int32)
-    cdef int[:,:] dominated_solutions = np.empty((population_size, population_size), dtype=np.int32)
-    cdef int[:,:] front_indices = np.empty((population_size, population_size), dtype=np.int32)
+    cdef np.ndarray[int, ndim=1] population_size = objectives.shape[0]
+    cdef np.ndarray[int, ndim=1] p, q, i, j, k, next_front_size
+    cdef np.ndarray[int, ndim=1] domination_count = np.zeros(population_size, dtype=np.int32)
+    cdef np.ndarray[int, ndim=1] current_counts = np.zeros(population_size, dtype=np.int32)
+    cdef np.ndarray[int, ndim=1] ranks = np.zeros(population_size, dtype=np.int32)
+    cdef np.ndarray[int, ndim=1] front_sizes = np.zeros(population_size, dtype=np.int32)
+    cdef np.ndarray[int, ndim=2] dominated_solutions = np.empty((population_size, population_size), dtype=np.int32)
+    cdef np.ndarray[int, ndim=2] front_indices = np.empty((population_size, population_size), dtype=np.int32)
 
     for p in range(population_size):
         for q in range(population_size):
@@ -58,7 +58,7 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
     cdef int num_individuals = len(front)
     cdef int num_objectives = objectives.shape[1]
     cdef np.ndarray[double, ndim=1] distance = np.empty(num_individuals)
-    cdef int[:] sorted_indices = np.empty(num_individuals, dtype=np.int32)
+    cdef np.ndarray[int, ndim=1] sorted_indices = np.empty(num_individuals, dtype=np.int32)
     cdef double next_value, prev_value, norm
     cdef int m, i
 

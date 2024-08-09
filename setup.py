@@ -10,7 +10,7 @@ extensions = [
 
 setup(
     name='fast_optimization2',
-    version='0.1.6',
+    version='0.1.7',
     include_dirs=[numpy.get_include()],
     ext_modules=cythonize(extensions, compiler_directives={'language_level': "3"}),
     author='Lucas de Freitas Pereira',
