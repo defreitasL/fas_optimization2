@@ -69,13 +69,13 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
 
         distance[sorted_indices[0]] = np.inf
         print("Check crowding 1")
-        distance[sorted_indices[-1]] = np.inf
+        distance[sorted_indices[len(sorted_indices)]] = np.inf
         print("Check crowding 2")
 
         for i in range(1, num_individuals - 1):
             next_value = objectives[front[sorted_indices[i + 1]], m]
             prev_value = objectives[front[sorted_indices[i - 1]], m]
-            norm = objectives[front[sorted_indices[-1]], m] - objectives[front[sorted_indices[0]], m]
+            norm = objectives[front[sorted_indices[-len(sorted_indices)]], m] - objectives[front[sorted_indices[0]], m]
             if norm != 0:
                 distance[sorted_indices[i]] += (next_value - prev_value) / norm
         print("Check crowding 3")
