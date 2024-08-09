@@ -51,7 +51,7 @@ cpdef tuple fast_non_dominated_sort(np.ndarray[double, ndim=2] objectives):
 
     return ranks, front_indices, front_sizes
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, ndim=2] objectives, np.ndarray[int, ndim=1] front):
     """
@@ -63,6 +63,9 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
     cdef np.ndarray[int, ndim=1] sorted_indices
     cdef double next_value, prev_value, norm
     cdef int m, i
+
+    print(front)
+    print(objectives)
 
     for m in range(num_objectives):
         sorted_indices = np.argsort(objectives[front, m]).astype(np.int32)
