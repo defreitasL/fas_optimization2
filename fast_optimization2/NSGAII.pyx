@@ -233,36 +233,46 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
         current_size = 0
         i = 0
         while i < population_size and front_sizes[i] > 0:
+            print("Check 1")
             current_front = front_indices[i, :front_sizes[i]]
             crowding_distances = calculate_crowding_distance(objectives, current_front.astype(np.int32))
+            print("Check 2")
             sorted_indices = np.argsort(-crowding_distances)
             selected_indices = current_front[sorted_indices]
-
+            print("Check 3")
             if current_size + len(selected_indices) > population_size - num_to_regenerate:
                 remaining_space = population_size - num_to_regenerate - current_size
                 next_population_indices = np.append(next_population_indices, selected_indices[:remaining_space])
                 break
+            print("Check 4")
             next_population_indices = np.append(next_population_indices, selected_indices)
             current_size += len(selected_indices)
             i += 1
+            print("Check 5")
 
+        print("Check 6")
         mating_pool = population[next_population_indices.astype(np.int32)]
         offspring = crossover(mating_pool, npar, cross_prob, lower_bounds, upper_bounds)
         offspring = polynomial_mutation(offspring, mutation_rate, npar, lower_bounds, upper_bounds)
 
+        print("Check 7")
         new_individuals = initialize_population(num_to_regenerate, lower_bounds, upper_bounds)
         offspring = np.vstack((offspring, new_individuals))
-
+        print("Check 8")
         new_objectives = np.empty_like(objectives)
         for i in range(population_size):
             simulation = model_simulation(E, dt, Obs[0], idx_obs, offspring[i])
             new_objectives[i] = obj_func(Obs, simulation, index_metrics)
 
+        print("Check 9")
         population = offspring
         objectives = new_objectives
 
+        print("Check 10")
         if generation % 10 == 0:
             print(f"Generation {generation} of {num_generations} completed")
+        
+        print("Check 11")
 
     return population, objectives
 
