@@ -64,22 +64,11 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
     cdef double next_value, prev_value, norm
     cdef int m, i
 
-    print(front)
-    print(objectives)
-
     for m in range(num_objectives):
         sorted_indices = np.argsort(objectives[front, m]).astype(np.int32)
 
-        distance[sorted_indices[0]] = 1e308 # np.inf
-        print("Check crowding 1")
-        print(len(distance))
-        print(len(sorted_indices))
-        print(sorted_indices)
-        print("objectives[front, m]:", objectives[front, m])
-        print("Indices acessados:", sorted_indices[0], sorted_indices[len(sorted_indices)-1])
- 
-        distance[sorted_indices[len(sorted_indices)-1]] = 1e308 # np.inf
-        print("Check crowding 2")
+        distance[sorted_indices[0]] = np.inf
+        distance[sorted_indices[len(sorted_indices)-1]] = np.inf
 
         for i in range(1, num_individuals - 1):
             next_value = objectives[front[sorted_indices[i + 1]], m]
@@ -87,8 +76,7 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
             norm = objectives[front[sorted_indices[len(sorted_indices)-1]], m] - objectives[front[sorted_indices[0]], m]
             if norm != 0:
                 distance[sorted_indices[i]] += (next_value - prev_value) / norm
-        print("Check crowding 3")
-    print("Check crowding 4")
+
     return distance
 
 @cython.boundscheck(False)
@@ -228,7 +216,7 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
     cdef np.ndarray[double, ndim=2] population, objectives, new_objectives
     cdef np.ndarray[int, ndim=1] ranks, next_population_indices, current_front, selected_indices, sorted_indices
     cdef int npar, num_to_regenerate, i, current_size, remaining_space, generation
-    cdef double crowding_distances
+    cdef np.ndarray[double, ndim=1] crowding_distances
 
     # Chame a função para inicializar a população e obtenha os limites inferiores e superiores
     population, lower_bounds, upper_bounds = initialize_population(population_size, lower_bounds, upper_bounds)
