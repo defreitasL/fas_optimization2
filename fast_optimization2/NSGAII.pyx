@@ -234,7 +234,7 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
         i = 0
         while i < population_size and front_sizes[i] > 0:
             current_front = front_indices[i, :front_sizes[i]]
-            crowding_distances = calculate_crowding_distance(objectives, current_front)
+            crowding_distances = calculate_crowding_distance(objectives, current_front.astype(np.int32))
             sorted_indices = np.argsort(-crowding_distances)
             selected_indices = current_front[sorted_indices]
 
