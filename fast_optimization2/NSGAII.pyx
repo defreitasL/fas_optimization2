@@ -65,7 +65,7 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
     cdef int m, i
 
     for m in range(num_objectives):
-        sorted_indices = np.argsort(objectives[front, m])
+        sorted_indices = np.argsort(objectives[front, m]).astype(np.int32)
         distance[sorted_indices[0]] = distance[sorted_indices[-1]] = np.inf
 
         for i in range(1, num_individuals - 1):
