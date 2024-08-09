@@ -239,7 +239,7 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
             current_front = front_indices[i, :front_sizes[i]]
             crowding_distances = calculate_crowding_distance(objectives, current_front.astype(np.int32))
             print("Check 2")
-            sorted_indices = np.argsort(-crowding_distances)
+            sorted_indices = np.argsort(-crowding_distances).astype(np.int32)
             selected_indices = current_front[sorted_indices]
             print("Check 3")
             if current_size + len(selected_indices) > population_size - num_to_regenerate:
