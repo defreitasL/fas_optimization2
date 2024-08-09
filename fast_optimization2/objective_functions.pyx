@@ -1,4 +1,5 @@
 # cython: boundscheck=False
+# cython -a -c=-O3 -c=-march=native -c=-ffast-math -c=-funroll-loops
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -20,6 +21,7 @@ def multi_obj_func2(metrics):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef np.ndarray[double, ndim=1] obj_func(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation, list indexes):
     """
     Objective function to compute likes based on evaluation and simulation data.

@@ -1,4 +1,5 @@
 # cython: boundscheck=False
+# cython -a -c=-O3 -c=-march=native -c=-ffast-math -c=-funroll-loops
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -7,6 +8,7 @@ from fast_optimization2.objective_functions import obj_func
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef tuple fast_non_dominated_sort(np.ndarray[double, ndim=2] objectives):
     """
     Fast non-dominated sort algorithm for NSGA-II
@@ -81,6 +83,7 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef np.ndarray[int, ndim=1] fast_sort(np.ndarray[double, ndim=2] scores):
     """
     Fast sort algorithm
@@ -98,6 +101,7 @@ cpdef np.ndarray[int, ndim=1] fast_sort(np.ndarray[double, ndim=2] scores):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef np.ndarray[double, ndim=2] select_next_generation(np.ndarray[double, ndim=2] population, np.ndarray[double, ndim=2] scores, int population_size):
     """
     Select the next generation of the population
@@ -107,6 +111,7 @@ cpdef np.ndarray[double, ndim=2] select_next_generation(np.ndarray[double, ndim=
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef np.ndarray[int, ndim=1] tournament_selection(np.ndarray[double, ndim=2] scores, int pressure):
     """
     Tournament selection algorithm
@@ -125,6 +130,7 @@ cpdef np.ndarray[int, ndim=1] tournament_selection(np.ndarray[double, ndim=2] sc
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef np.ndarray[double, ndim=2] crossover(np.ndarray[double, ndim=2] population, int num_vars, double crossover_prob, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
     """
     Crossover operation for genetic algorithm
@@ -149,6 +155,7 @@ cpdef np.ndarray[double, ndim=2] crossover(np.ndarray[double, ndim=2] population
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef np.ndarray[double, ndim=2] polynomial_mutation(np.ndarray[double, ndim=2] population, double mutation_rate, int num_vars, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
     """
     Polynomial mutation for genetic algorithm
@@ -169,6 +176,7 @@ cpdef np.ndarray[double, ndim=2] polynomial_mutation(np.ndarray[double, ndim=2] 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef np.ndarray[double, ndim=1] fitness_sharing(np.ndarray[double, ndim=2] objectives, double sigma_share=0.01):
     """
     Fitness sharing for maintaining diversity in genetic algorithm
@@ -199,6 +207,7 @@ cpdef np.ndarray[double, ndim=1] fitness_sharing(np.ndarray[double, ndim=2] obje
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef tuple select_niched_population(np.ndarray[double, ndim=2] population, np.ndarray[double, ndim=2] objectives, int num_to_select):
     """
     Select population based on fitness sharing
@@ -209,6 +218,7 @@ cpdef tuple select_niched_population(np.ndarray[double, ndim=2] population, np.n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef tuple initialize_population(int population_size, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
     """
     Initialize population within the given bounds
@@ -223,6 +233,7 @@ cpdef tuple initialize_population(int population_size, np.ndarray[double, ndim=1
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generations, int population_size, double cross_prob, double mutation_rate, double regeneration_rate, list index_metrics, np.ndarray[double, ndim=1] E, double dt, np.ndarray[int, ndim=1] idx_obs, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
     """
     NSGA-II algorithm with additional parameters

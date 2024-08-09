@@ -1,10 +1,12 @@
 # cython: boundscheck=False
+# cython -a -c=-O3 -c=-march=native -c=-ffast-math -c=-funroll-loops
 import numpy as np
 cimport numpy as np
 cimport cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double bias(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Bias objective function
@@ -14,6 +16,7 @@ cpdef double bias(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double correlation_coefficient_loss(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Correlation Coefficient Loss
@@ -33,6 +36,7 @@ cpdef double correlation_coefficient_loss(np.ndarray[double, ndim=1] evaluation,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double mielke_skill_score(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Mielke index
@@ -60,6 +64,7 @@ cpdef double mielke_skill_score(np.ndarray[double, ndim=1] evaluation, np.ndarra
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double nashsutcliffe(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Nash-Sutcliffe objective function
@@ -68,6 +73,7 @@ cpdef double nashsutcliffe(np.ndarray[double, ndim=1] evaluation, np.ndarray[dou
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double lognashsutcliffe(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Log Nash-Sutcliffe objective function
@@ -76,6 +82,7 @@ cpdef double lognashsutcliffe(np.ndarray[double, ndim=1] evaluation, np.ndarray[
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double pearson(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Pearson objective function
@@ -84,6 +91,7 @@ cpdef double pearson(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double spearman(np.ndarray[double, ndim=1] x, np.ndarray[double, ndim=1] y):
     """
     Calculate Spearman's rank correlation coefficient.
@@ -101,6 +109,7 @@ cpdef double spearman(np.ndarray[double, ndim=1] x, np.ndarray[double, ndim=1] y
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double agreementindex(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Agreement Index
@@ -109,6 +118,7 @@ cpdef double agreementindex(np.ndarray[double, ndim=1] evaluation, np.ndarray[do
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double kge(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Kling-Gupta Efficiency
@@ -129,6 +139,7 @@ cpdef double kge(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double npkge(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Non parametric Kling-Gupta Efficiency
@@ -161,6 +172,7 @@ cpdef double npkge(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndi
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double log_p(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Logarithmic Probability Distribution
@@ -174,6 +186,7 @@ cpdef double log_p(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndi
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double covariance(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Covariance objective function
@@ -185,6 +198,7 @@ cpdef double covariance(np.ndarray[double, ndim=1] evaluation, np.ndarray[double
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double pbias(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Percent Bias
@@ -193,6 +207,7 @@ cpdef double pbias(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndi
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double mse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Mean Squared Error
@@ -201,6 +216,7 @@ cpdef double mse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double rmse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Root Mean Squared Error
@@ -209,6 +225,7 @@ cpdef double rmse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double mae(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Mean Absolute Error
@@ -217,6 +234,7 @@ cpdef double mae(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double rrmse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Relative RMSE
@@ -225,6 +243,7 @@ cpdef double rrmse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndi
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double rsr(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     RMSE-observations standard deviation ratio
@@ -233,6 +252,7 @@ cpdef double rsr(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double decomposed_mse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Decomposed MSE
@@ -246,6 +266,7 @@ cpdef double decomposed_mse(np.ndarray[double, ndim=1] evaluation, np.ndarray[do
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef tuple backtot():
     """
     Backtot function
@@ -279,6 +300,7 @@ cpdef tuple backtot():
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef double opt(int index, np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=1] simulation):
     """
     Optimization function
