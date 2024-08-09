@@ -1,5 +1,8 @@
 # cython: boundscheck=False
 # cython -a -c=-O3 -c=-march=native -c=-ffast-math -c=-funroll-loops
+from libc.stdlib cimport malloc, free, rand, srand
+from libc.math cimport sqrt, exp, log, fabs, isnan, pow, pi
+from time import time as time_now
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -12,7 +15,14 @@ cpdef double bias(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim
     Bias objective function
     """
     cdef int n = evaluation.shape[0]
-    return np.nansum(evaluation - simulation) / n
+    cdef double total_diff = 0.0
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            total_diff += evaluation[i] - simulation[i]
+
+    return total_diff / n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -24,15 +34,28 @@ cpdef double correlation_coefficient_loss(np.ndarray[double, ndim=1] evaluation,
     cdef int n = evaluation.shape[0]
     cdef double mx = np.nanmean(evaluation)
     cdef double my = np.nanmean(simulation)
-    cdef np.ndarray[double, ndim=1] xm = evaluation - mx
-    cdef np.ndarray[double, ndim=1] ym = simulation - my
-    cdef double r_num = np.nansum(xm * ym)
-    cdef double r_den = np.sqrt(np.nansum(np.square(xm)) * np.nansum(np.square(ym)))
+    cdef double r_num = 0.0
+    cdef double r_den_x = 0.0
+    cdef double r_den_y = 0.0
+    cdef double xm, ym
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            xm = evaluation[i] - mx
+            ym = simulation[i] - my
+            r_num += xm * ym
+            r_den_x += xm * xm
+            r_den_y += ym * ym
+
+    r_den = sqrt(r_den_x * r_den_y)
     if r_den == 0:
         r_den = 1e-10
+
     cdef double r = r_num / r_den
-    r = np.maximum(np.minimum(r, 1.0), -1.0)
-    return 1 - np.square(r)
+    r = max(min(r, 1.0), -1.0)
+
+    return 1 - r * r
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -46,16 +69,22 @@ cpdef double mielke_skill_score(np.ndarray[double, ndim=1] evaluation, np.ndarra
     cdef int n = evaluation.shape[0]
     cdef double mx = np.nanmean(evaluation)
     cdef double my = np.nanmean(simulation)
-    cdef np.ndarray[double, ndim=1] xm = evaluation - mx
-    cdef np.ndarray[double, ndim=1] ym = simulation - my
-    cdef np.ndarray[double, ndim=1] diff = (evaluation - simulation) ** 2
-    cdef double d1 = np.nansum(diff)
-    cdef double d2 = np.nanvar(evaluation) + np.nanvar(simulation) + (np.nanmean(evaluation) - np.nanmean(simulation)) ** 2
-    cdef double kappa
-    cdef double mss
+    cdef double d1 = 0.0
+    cdef double d2 = 0.0
+    cdef double kappa = 0.0
+    cdef double mss = 0.0
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            d1 += pow(evaluation[i] - simulation[i], 2)
+            d2 += pow(evaluation[i] - mx, 2) + pow(simulation[i] - my, 2)
 
     if correlation_coefficient_loss(evaluation, simulation) < 0:
-        kappa = np.abs(np.nansum(xm * ym)) * 2
+        for i in range(n):
+            if not isnan(evaluation[i]) and not isnan(simulation[i]):
+                kappa += fabs((evaluation[i] - mx) * (simulation[i] - my))
+        kappa *= 2
         mss = 1 - (d1 / n) / (d2 + kappa)
     else:
         mss = 1 - (d1 / n) / d2
@@ -69,7 +98,18 @@ cpdef double nashsutcliffe(np.ndarray[double, ndim=1] evaluation, np.ndarray[dou
     """
     Nash-Sutcliffe objective function
     """
-    return 1 - np.nansum((evaluation - simulation) ** 2) / np.nansum((evaluation - np.nanmean(evaluation)) ** 2)
+    cdef int n = evaluation.shape[0]
+    cdef double mean_eval = np.nanmean(evaluation)
+    cdef double num = 0.0
+    cdef double den = 0.0
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            num += pow(evaluation[i] - simulation[i], 2)
+            den += pow(evaluation[i] - mean_eval, 2)
+
+    return 1 - num / den
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -78,7 +118,18 @@ cpdef double lognashsutcliffe(np.ndarray[double, ndim=1] evaluation, np.ndarray[
     """
     Log Nash-Sutcliffe objective function
     """
-    return 1 - np.nansum((np.log(simulation) - np.log(evaluation)) ** 2) / np.nansum((np.log(evaluation) - np.nanmean(np.log(evaluation))) ** 2)
+    cdef int n = evaluation.shape[0]
+    cdef double mean_log_eval = np.nanmean(np.log(evaluation))
+    cdef double num = 0.0
+    cdef double den = 0.0
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            num += pow(log(simulation[i]) - log(evaluation[i]), 2)
+            den += pow(log(evaluation[i]) - mean_log_eval, 2)
+
+    return 1 - num / den
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -99,13 +150,19 @@ cpdef double spearman(np.ndarray[double, ndim=1] x, np.ndarray[double, ndim=1] y
     cdef int n = x.shape[0]
     cdef np.ndarray[int, ndim=1] x_rank = np.argsort(np.argsort(x))
     cdef np.ndarray[int, ndim=1] y_rank = np.argsort(np.argsort(y))
+    cdef double numerator = 0.0
+    cdef double denominator = 0.0
+    cdef int i
 
     if n == 0:
         return 0.0
-    else:
-        numerator = 2 * np.nansum(x_rank * y_rank) - n * (n - 1)
-        denominator = n * (n - 1) * (n + 1)
-        return numerator / denominator
+
+    for i in range(n):
+        numerator += (x_rank[i] - y_rank[i]) * (x_rank[i] - y_rank[i])
+
+    denominator = n * (n * n - 1)
+
+    return 1 - (6 * numerator / denominator)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -114,7 +171,18 @@ cpdef double agreementindex(np.ndarray[double, ndim=1] evaluation, np.ndarray[do
     """
     Agreement Index
     """
-    return 1 - (np.nansum((evaluation - simulation) ** 2)) / (np.nansum((np.abs(simulation - np.nanmean(evaluation)) + np.abs(evaluation - np.nanmean(evaluation))) ** 2))
+    cdef double mean_eval = np.nanmean(evaluation)
+    cdef double num = 0.0
+    cdef double den = 0.0
+    cdef int n = evaluation.shape[0]
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            num += pow(evaluation[i] - simulation[i], 2)
+            den += pow(fabs(simulation[i] - mean_eval) + fabs(evaluation[i] - mean_eval), 2)
+
+    return 1 - num / den
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -134,7 +202,7 @@ cpdef double kge(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=
     cdef double r = np.corrcoef(simulation, evaluation)[0, 1]
     cdef double beta = mu_s / mu_o
     cdef double alpha = std_s / std_o
-    cdef double kge = 1 - np.sqrt((r - 1)**2 + (alpha - 1)**2 + (beta - 1)**2)
+    cdef double kge = 1 - sqrt((r - 1)**2 + (alpha - 1)**2 + (beta - 1)**2)
     return kge
 
 @cython.boundscheck(False)
@@ -167,7 +235,7 @@ cpdef double npkge(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndi
     cdef np.ndarray[double, ndim=1] fdc_obs = np.sort(evaluation / (eval_mean * len(evaluation)))
     cdef double alpha = 1 - 0.5 * np.nanmean(np.abs(fdc_sim - fdc_obs))
     cdef double beta = sim_mean / eval_mean
-    cdef double kge = 1 - np.sqrt((cc - 1) ** 2 + (alpha - 1) ** 2 + (beta - 1) ** 2)
+    cdef double kge = 1 - sqrt((cc - 1) ** 2 + (alpha - 1) ** 2 + (beta - 1) ** 2)
     return kge
 
 @cython.boundscheck(False)
@@ -180,9 +248,18 @@ cpdef double log_p(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndi
     cdef double scale = np.nanmean(evaluation) / 10
     if scale < 0.01:
         scale = 0.01
-    cdef np.ndarray[double, ndim=1] y = (evaluation - simulation) / scale
-    cdef np.ndarray[double, ndim=1] normpdf = -(y ** 2) / 2 - np.log(np.sqrt(2 * np.pi))
-    return np.nanmean(normpdf)
+    cdef double total = 0.0
+    cdef double y, normpdf
+    cdef int n = evaluation.shape[0]
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            y = (evaluation[i] - simulation[i]) / scale
+            normpdf = -(y * y) / 2 - log(sqrt(2 * pi))
+            total += normpdf
+
+    return total / n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -193,8 +270,15 @@ cpdef double covariance(np.ndarray[double, ndim=1] evaluation, np.ndarray[double
     """
     cdef double obs_mean = np.nanmean(evaluation)
     cdef double sim_mean = np.nanmean(simulation)
-    cdef double covariance = np.nanmean((evaluation - obs_mean) * (simulation - sim_mean))
-    return covariance
+    cdef double total_covariance = 0.0
+    cdef int n = evaluation.shape[0]
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            total_covariance += (evaluation[i] - obs_mean) * (simulation[i] - sim_mean)
+
+    return total_covariance / n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -203,7 +287,17 @@ cpdef double pbias(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndi
     """
     Percent Bias
     """
-    return 100 * np.nansum(evaluation - simulation) / np.nansum(evaluation)
+    cdef double total_eval = 0.0
+    cdef double total_diff = 0.0
+    cdef int n = evaluation.shape[0]
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            total_eval += evaluation[i]
+            total_diff += evaluation[i] - simulation[i]
+
+    return 100 * total_diff / total_eval
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -212,7 +306,15 @@ cpdef double mse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=
     """
     Mean Squared Error
     """
-    return np.nanmean((evaluation - simulation) ** 2)
+    cdef double total = 0.0
+    cdef int n = evaluation.shape[0]
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            total += pow(evaluation[i] - simulation[i], 2)
+
+    return total / n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -221,7 +323,7 @@ cpdef double rmse(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim
     """
     Root Mean Squared Error
     """
-    return np.sqrt(np.nanmean((evaluation - simulation) ** 2))
+    return sqrt(mse(evaluation, simulation))
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -230,7 +332,15 @@ cpdef double mae(np.ndarray[double, ndim=1] evaluation, np.ndarray[double, ndim=
     """
     Mean Absolute Error
     """
-    return np.nanmean(np.abs(evaluation - simulation))
+    cdef double total = 0.0
+    cdef int n = evaluation.shape[0]
+    cdef int i
+
+    for i in range(n):
+        if not isnan(evaluation[i]) and not isnan(simulation[i]):
+            total += fabs(evaluation[i] - simulation[i])
+
+    return total / n
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -259,8 +369,8 @@ cpdef double decomposed_mse(np.ndarray[double, ndim=1] evaluation, np.ndarray[do
     """
     cdef double e_std = np.nanstd(evaluation)
     cdef double s_std = np.nanstd(simulation)
-    cdef double bias_squared = bias(evaluation, simulation) ** 2
-    cdef double sdsd = (e_std - s_std) ** 2
+    cdef double bias_squared = pow(bias(evaluation, simulation), 2)
+    cdef double sdsd = pow(e_std - s_std, 2)
     cdef double lcs = 2 * e_std * s_std * (1 - np.corrcoef(evaluation, simulation)[0, 1])
     return bias_squared + sdsd + lcs
 
@@ -308,92 +418,92 @@ cpdef double opt(int index, np.ndarray[double, ndim=1] evaluation, np.ndarray[do
     cdef double out
     if index == 0:
         out = mielke_skill_score(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 1:
         out = nashsutcliffe(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 2:
         out = lognashsutcliffe(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 3:
         out = pearson(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 4:
         out = spearman(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 5:
         out = agreementindex(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 6:
         out = kge(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 7:
         out = npkge(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return 1e-6
         return out
     elif index == 8:
         out = log_p(evaluation, simulation)
-        if np.isnan(out) or out < 0:
+        if isnan(out) or out < 0:
             return -999
         return out
     elif index == 9:
         out = bias(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
-        return np.abs(out)
+        return fabs(out)
     elif index == 10:
         out = pbias(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 100
         return out
     elif index == 11:
         out = mse(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
         return out
     elif index == 12:
         out = rmse(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
         return out
     elif index == 13:
         out = mae(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
-        return np.abs(out)
+        return fabs(out)
     elif index == 14:
         out = rrmse(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
-        return np.abs(out)
+        return fabs(out)
     elif index == 15:
         out = rsr(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
-        return np.abs(out)
+        return fabs(out)
     elif index == 16:
         out = covariance(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
-        return np.abs(out)
+        return fabs(out)
     elif index == 17:
         out = decomposed_mse(evaluation, simulation)
-        if np.isnan(out):
+        if isnan(out):
             return 1000
         return out
     else:
