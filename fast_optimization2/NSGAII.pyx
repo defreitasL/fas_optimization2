@@ -132,7 +132,7 @@ cpdef np.ndarray[int, ndim=1] tournament_selection(np.ndarray[double, ndim=2] sc
 @cython.cdivision(True)
 cpdef np.ndarray[double, ndim=2] crossover(np.ndarray[double, ndim=2] population, int num_vars, double crossover_prob, np.ndarray[double, ndim=1] lower_bounds, np.ndarray[double, ndim=1] upper_bounds):
     cdef int i, j, cross_point
-    cdef np.ndarray[double, ndim=1] temp
+    cdef double temp
 
     for i in range(0, len(population), 2):
         if i + 1 >= len(population):
