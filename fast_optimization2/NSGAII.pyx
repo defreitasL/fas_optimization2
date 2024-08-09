@@ -259,6 +259,8 @@ cpdef tuple nsgaii_algorithm_(np.ndarray[double, ndim=1] Obs, int num_generation
 
         print("Check 7")
         new_individuals = initialize_population(num_to_regenerate, lower_bounds, upper_bounds)
+        print(offspring.shape)
+        print(new_individuals.shape)
         offspring = np.vstack((offspring, new_individuals))
         print("Check 8")
         new_objectives = np.empty_like(objectives)
