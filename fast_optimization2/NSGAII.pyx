@@ -73,6 +73,7 @@ cpdef np.ndarray[double, ndim=1] calculate_crowding_distance(np.ndarray[double, 
         print(len(sorted_indices))
         print(sorted_indices)
         print("Indices acessados:", sorted_indices[0], sorted_indices[-1])
+        print("objectives[front, m]:", objectives[front, m])
 
         distance[sorted_indices[-1]] = 1e308 # np.inf
         print("Check crowding 2")
