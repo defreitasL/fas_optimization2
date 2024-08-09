@@ -13,8 +13,8 @@ from libc.time cimport time
 @cython.wraparound(False)
 @cython.cdivision(True)
 cpdef tuple fast_non_dominated_sort(np.ndarray[double, ndim=2] objectives):
-    cdef np.ndarray[int, ndim=1] population_size = objectives.shape[0]
-    cdef np.ndarray[int, ndim=1] p, q, i, j, k, next_front_size
+    cdef int population_size = objectives.shape[0]
+    cdef int p, q, i, j, k, next_front_size
     cdef np.ndarray[int, ndim=1] domination_count = np.zeros(population_size, dtype=np.int32)
     cdef np.ndarray[int, ndim=1] current_counts = np.zeros(population_size, dtype=np.int32)
     cdef np.ndarray[int, ndim=1] ranks = np.zeros(population_size, dtype=np.int32)
